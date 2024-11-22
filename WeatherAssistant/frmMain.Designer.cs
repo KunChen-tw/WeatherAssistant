@@ -41,16 +41,21 @@ namespace WeatherAssistant
             btnCut0717 = new Button();
             btnRefresh = new Button();
             grpMergeData = new GroupBox();
-            btn = new Button();
+            btnExportCSV = new Button();
             btnClear = new Button();
             btnDelete = new Button();
             btnAdd = new Button();
             lstMergeData = new ListBox();
             txtOutput = new RichTextBox();
+            grpCutBySelect = new GroupBox();
+            btnCutBySelectDay = new Button();
+            cmbCutEnd = new ComboBox();
+            cmbCutStart = new ComboBox();
             grpDevice.SuspendLayout();
             gbMonth.SuspendLayout();
             grpCutData.SuspendLayout();
             grpMergeData.SuspendLayout();
+            grpCutBySelect.SuspendLayout();
             SuspendLayout();
             // 
             // grpDevice
@@ -150,7 +155,7 @@ namespace WeatherAssistant
             // 
             // grpMergeData
             // 
-            grpMergeData.Controls.Add(btn);
+            grpMergeData.Controls.Add(btnExportCSV);
             grpMergeData.Controls.Add(btnClear);
             grpMergeData.Controls.Add(btnDelete);
             grpMergeData.Controls.Add(btnAdd);
@@ -162,15 +167,15 @@ namespace WeatherAssistant
             grpMergeData.TabStop = false;
             grpMergeData.Text = "合併資料";
             // 
-            // btn
+            // btnExportCSV
             // 
-            btn.Location = new Point(171, 253);
-            btn.Name = "btn";
-            btn.Size = new Size(78, 23);
-            btn.TabIndex = 4;
-            btn.Text = "合併匯出";
-            btn.UseVisualStyleBackColor = true;
-            btn.Click += btn_Click;
+            btnExportCSV.Location = new Point(171, 253);
+            btnExportCSV.Name = "btnExportCSV";
+            btnExportCSV.Size = new Size(78, 23);
+            btnExportCSV.TabIndex = 4;
+            btnExportCSV.Text = "合併匯出";
+            btnExportCSV.UseVisualStyleBackColor = true;
+            btnExportCSV.Click += btnExportCSV_Click;
             // 
             // btnClear
             // 
@@ -220,11 +225,57 @@ namespace WeatherAssistant
             txtOutput.TabIndex = 8;
             txtOutput.Text = "";
             // 
+            // grpCutBySelect
+            // 
+            grpCutBySelect.Controls.Add(btnCutBySelectDay);
+            grpCutBySelect.Controls.Add(cmbCutEnd);
+            grpCutBySelect.Controls.Add(cmbCutStart);
+            grpCutBySelect.Location = new Point(213, 241);
+            grpCutBySelect.Name = "grpCutBySelect";
+            grpCutBySelect.Size = new Size(208, 56);
+            grpCutBySelect.TabIndex = 9;
+            grpCutBySelect.TabStop = false;
+            grpCutBySelect.Text = "指定日期";
+            // 
+            // btnCutBySelectDay
+            // 
+            btnCutBySelectDay.Enabled = false;
+            btnCutBySelectDay.Location = new Point(140, 24);
+            btnCutBySelectDay.Name = "btnCutBySelectDay";
+            btnCutBySelectDay.Size = new Size(62, 23);
+            btnCutBySelectDay.TabIndex = 2;
+            btnCutBySelectDay.Text = "切割";
+            btnCutBySelectDay.UseVisualStyleBackColor = true;
+            btnCutBySelectDay.Click += btnCutBySelectDay_Click;
+            // 
+            // cmbCutEnd
+            // 
+            cmbCutEnd.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCutEnd.Enabled = false;
+            cmbCutEnd.FormattingEnabled = true;
+            cmbCutEnd.Items.AddRange(new object[] { "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31" });
+            cmbCutEnd.Location = new Point(73, 25);
+            cmbCutEnd.Name = "cmbCutEnd";
+            cmbCutEnd.Size = new Size(61, 23);
+            cmbCutEnd.TabIndex = 1;
+            // 
+            // cmbCutStart
+            // 
+            cmbCutStart.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCutStart.Enabled = false;
+            cmbCutStart.FormattingEnabled = true;
+            cmbCutStart.Items.AddRange(new object[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30" });
+            cmbCutStart.Location = new Point(6, 25);
+            cmbCutStart.Name = "cmbCutStart";
+            cmbCutStart.Size = new Size(61, 23);
+            cmbCutStart.TabIndex = 0;
+            // 
             // FrmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(694, 409);
+            Controls.Add(grpCutBySelect);
             Controls.Add(txtOutput);
             Controls.Add(grpMergeData);
             Controls.Add(btnRefresh);
@@ -236,12 +287,13 @@ namespace WeatherAssistant
             MinimizeBox = false;
             Name = "FrmMain";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "氣候資料處理工具";
+            Text = "氣候資料處理工具 v0.6.3";
             Load += frmMain_Load;
             grpDevice.ResumeLayout(false);
             gbMonth.ResumeLayout(false);
             grpCutData.ResumeLayout(false);
             grpMergeData.ResumeLayout(false);
+            grpCutBySelect.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -262,8 +314,12 @@ namespace WeatherAssistant
         private ListBox lstMergeData;
         private Button btnAdd;
         private Button btnDelete;
-        private Button btn;
+        private Button btnExportCSV;
         private Button btnClear;
         private RichTextBox txtOutput;
+        private GroupBox grpCutBySelect;
+        private Button btnCutBySelectDay;
+        private ComboBox cmbCutEnd;
+        private ComboBox cmbCutStart;
     }
 }

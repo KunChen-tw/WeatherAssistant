@@ -38,12 +38,15 @@ namespace WeatherAssistant
                 cmbDevice.Items.AddRange(csvFiles.Select(file => Path.GetFileName(file)).ToArray());
             }
             IsEnableCutButton(false);
+            IsEnableCutBySelect(false);
             selectedDay = -1;
         }
 
         private void ShowOutput(string str)
         {
             txtOutput.AppendText($"{str}\n");
+            txtOutput.SelectionStart = txtOutput.Text.Length;
+            txtOutput.ScrollToCaret();
         }
 
         private void ClearWeatherDataMonth()
@@ -112,7 +115,12 @@ namespace WeatherAssistant
             btnCut0709.Enabled = value; // 啟用 btnCut0709 按鈕
             btnCut0917.Enabled = value; // 啟用 btnCut0917 按鈕
         }
-
+        private void IsEnableCutBySelect(bool value)
+        {
+            cmbCutStart.Enabled = value;
+            cmbCutEnd.Enabled = value;
+            btnCutBySelectDay.Enabled = value;
+        }
 
         private List<string> GetWeatherDataHourMinute(int startHour, int endHour)
         {
@@ -193,6 +201,9 @@ namespace WeatherAssistant
                 btnDay[i].Click += btnDay_Click; // 綁定點擊事件
                 this.Controls.Add(btnDay[i]);
             }
+
+            cmbCutStart.SelectedIndex = 0;
+            cmbCutEnd.SelectedIndex = 0;
         }
 
         private void cmbDevice_SelectedIndexChanged(object sender, EventArgs e)
@@ -254,7 +265,20 @@ namespace WeatherAssistant
                 // 遍歷當天的所有資料，標記每小時的每十分鐘是否有資料
                 for (int j = 0; j < weatherDataDay[i].Count; j++)
                 {
-                    isHasHourMinute[weatherDataDay[i][j].GetHour() - 1][weatherDataDay[i][j].GetMinute() / 10] = true;
+                    if (weatherDataDay[i][j].GetHour() - 1 <0)
+                    {
+                        ShowOutput($"資料超過範圍：{weatherDataDay[i][j].RawData}");
+                        continue;
+                    }
+                    try
+                    {
+                        isHasHourMinute[weatherDataDay[i][j].GetHour() - 1][weatherDataDay[i][j].GetMinute() / 10] = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"例外錯誤: {ex.Message}, Data:{weatherDataDay[i][j].RawData}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+
                 }
 
                 // 檢查7點到16點的資料是否完整
@@ -294,11 +318,13 @@ namespace WeatherAssistant
                     btnDay[i].BackColor = Color.Green; // 資料不完整
                 }
             }
+            IsEnableCutBySelect(true);
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             RefreshTrainingData();
+            ShowOutput("資料更新");
         }
 
         private void btnDay_Click(object sender, EventArgs e)
@@ -307,6 +333,7 @@ namespace WeatherAssistant
             selectedDay = int.Parse(clickedButton.Text);
 
             IsEnableCutButton(true);
+            ShowOutput($"選擇 {cmbMonth.Text}月{selectedDay:D2}日");
         }
 
         private void SaveCSV(int startHour, int endHour)
@@ -314,8 +341,9 @@ namespace WeatherAssistant
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
                 string deviceName = cmbDevice.Text.Split("_")[0];
+                int deviceID = int.Parse(deviceName.Substring(1));
                 saveFileDialog.Filter = "CSV files (*.csv)|*.csv";
-                saveFileDialog.FileName = $"{deviceName}_{cmbMonth.Text}{selectedDay:D2}_{startHour:D2}{endHour:D2}.csv"; // 預設檔名
+                saveFileDialog.FileName = $"L{deviceID:D2}_{cmbMonth.Text}{selectedDay:D2}_{startHour:D2}{endHour:D2}.csv"; // 預設檔名
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     List<string> result = GetWeatherDataHourMinute(startHour, endHour);
@@ -408,36 +436,98 @@ namespace WeatherAssistant
             ShowOutput("已清空所有檔案和檔案路徑");
         }
 
-        private void btn_Click(object sender, EventArgs e)
+        private void btnExportCSV_Click(object sender, EventArgs e)
         {
-        if (mergeFullPath.Count == 0)
-        {
-            ShowOutput("沒有檔案可以合併");
-            return;
-        }
-
-        using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-        {
-            saveFileDialog.Filter = "CSV files (*.csv)|*.csv";
-            saveFileDialog.Title = "儲存合併後的CSV檔案";
-
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            if (mergeFullPath.Count == 0)
             {
-                using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
+                ShowOutput("沒有檔案可以合併");
+                return;
+            }
+            int iProblemNumber = -1;
+            using (frmInputDialog frmInput = new frmInputDialog())
+            {
+                if (frmInput.ShowDialog() == DialogResult.OK)
                 {
-                    foreach (var filePath in mergeFullPath)
+                    iProblemNumber = frmInput.ProblemNumber;
+                    // 在這裡處理使用者輸入的題號
+                    ShowOutput($"您輸入的題號是: {iProblemNumber}");
+                }
+            }
+
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "CSV files (*.csv)|*.csv";
+                saveFileDialog.Title = "儲存合併後的CSV檔案";
+                int saveCount = 1;
+                if (iProblemNumber > 0)
+                {
+                    saveCount = lstMergeData.Items.Count - 1;
+                }
+                
+                if (iProblemNumber > 0)
+                {
+                    string strfile = lstMergeData.Items[lstMergeData.Items.Count - 1].ToString().Substring(0, 9);
+                    saveFileDialog.FileName = $"D{iProblemNumber:D3}_{strfile}{lstMergeData.Items.Count - 1:D2}.csv"; // 預設檔名
+                }
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
                     {
-                        var lines = File.ReadAllLines(filePath);
-                        foreach (var line in lines)
+                        writer.WriteLine("Serial,WindSpeed(m/s),Pressure(hpa),Temperature(°C),Humidity(%),Sunlight(Lux),Power(mW)");
+
+                        foreach (var filePath in mergeFullPath)
                         {
-                            writer.WriteLine(line);
+                            var lines = File.ReadAllLines(filePath);
+                            foreach (var line in lines)
+                            {
+                                writer.WriteLine(line);
+                            }
                         }
                     }
+                    ShowOutput($"檔案已成功合併並儲存至 {saveFileDialog.FileName}");
+
+                    //mergeFullPath.RemoveAt(0); // 移除第一筆資料
+
+                    //lstMergeData.Items.RemoveAt(0); // 刪除第一筆資料
                 }
-                ShowOutput($"檔案已成功合併並儲存至 {saveFileDialog.FileName}");
+                
+                mergeFullPath.Clear();
+                lstMergeData.Items.Clear();
             }
         }
 
+        private void btnCutBySelectDay_Click(object sender, EventArgs e)
+        {
+            int startCut = int.Parse(cmbCutStart.Text) - 1;
+            int endCut = int.Parse(cmbCutEnd.Text) - 1;
+
+            if (startCut >= endCut)
+            {
+                MessageBox.Show("開始天不能大於等於結束天", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (btnDay[startCut].BackColor != Color.Orange)
+            {
+                MessageBox.Show("開始天必需是橙色", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            //if (btnDay[endCut].BackColor != Color.Green)
+            //{
+            //    MessageBox.Show("結束天必需是綠色", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //    return;
+            //}
+            for (int i = startCut; i <= endCut; i++)
+            {
+                btnDay[i].PerformClick();
+                if (btnDay[i].BackColor == Color.Orange)
+                {
+                    SaveCSV(7, 16);
+                }
+                else
+                {
+                    SaveCSV(7, 8);
+                }
+            }
         }
     }
 }
