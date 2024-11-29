@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Weaher.ico</ApplicationIcon>
     <Deterministic>false</Deterministic>
-    <Version>0.7.6</Version>
+    <Version>0.7.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

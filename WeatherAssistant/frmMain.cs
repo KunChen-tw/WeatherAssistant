@@ -1,4 +1,6 @@
 using System.Collections.Specialized;
+using System.Reflection;
+using System.Windows.Forms;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WeatherAssistant
@@ -17,8 +19,21 @@ namespace WeatherAssistant
         public FrmMain()
         {
             InitializeComponent();
+            SetWindowTitleWithVersion();
         }
+        private void SetWindowTitleWithVersion()
+        {
+            // 獲取組件的版本資訊
+            Version? version = Assembly.GetExecutingAssembly().GetName().Version;
+            if (version != null)
+            {
+                string versionPrefix = $"{version.Major}.{version.Minor}.{version.Build}";
+                // 設定視窗標題
+                this.Text = $"{this.Text} - v{versionPrefix}";
+            }
 
+
+        }
         private void RefreshTrainingData()
         {
             string trainingDataPath = "TrainingData";
@@ -93,33 +108,35 @@ namespace WeatherAssistant
                 }
             }
         }
-        private void EnableDayButton()
-        {
-            foreach (Button button in btnDay)
-            {
-                button.Enabled = true;
-                button.BackColor = Color.DarkGray;
-            }
-        }
-        private void DisableDayButton()
-        {
-            foreach (Button button in btnDay)
-            {
-                button.Enabled = false;
-                button.BackColor = Color.DarkGray;
-            }
-        }
+        //private void IsEnableDayButton(bool value)
+        //{
+        //    foreach (Button button in btnDay)
+        //    {
+        //        button.Enabled = true;
+        //        button.BackColor = Color.DarkGray;
+        //    }
+        //}
+        //private void DisableDayButton()
+        //{
+        //    foreach (Button button in btnDay)
+        //    {
+        //        button.Enabled = false;
+        //        button.BackColor = Color.DarkGray;
+        //    }
+        //}
         private void IsEnableCutButton(bool value)
         {
-            btnCut0717.Enabled = value; // 啟用 btnCut0717 按鈕
-            btnCut0709.Enabled = value; // 啟用 btnCut0709 按鈕
-            btnCut0917.Enabled = value; // 啟用 btnCut0917 按鈕
+            grpCutData.Enabled = value;
+            //btnCut0717.Enabled = value; // 啟用 btnCut0717 按鈕
+            //btnCut0709.Enabled = value; // 啟用 btnCut0709 按鈕
+            //btnCut0917.Enabled = value; // 啟用 btnCut0917 按鈕
         }
         private void IsEnableCutBySelect(bool value)
         {
-            cmbCutStart.Enabled = value;
-            cmbCutEnd.Enabled = value;
-            btnCutBySelectDay.Enabled = value;
+            grpCutBySelect.Enabled = value;
+            //cmbCutStart.Enabled = value;
+            //cmbCutEnd.Enabled = value;
+            //btnCutBySelectDay.Enabled = value;
         }
 
         private List<string> GetWeatherDataHourMinute(int startHour, int endHour)
@@ -202,6 +219,9 @@ namespace WeatherAssistant
                 this.Controls.Add(btnDay[i]);
             }
 
+            cmbSearchMonth.SelectedIndex = 0;
+            cmbSearchDay.SelectedIndex = 0;
+
             cmbCutStart.SelectedIndex = 0;
             cmbCutEnd.SelectedIndex = 0;
         }
@@ -265,7 +285,7 @@ namespace WeatherAssistant
                 // 遍歷當天的所有資料，標記每小時的每十分鐘是否有資料
                 for (int j = 0; j < weatherDataDay[i].Count; j++)
                 {
-                    if (weatherDataDay[i][j].GetHour() - 1 <0)
+                    if (weatherDataDay[i][j].GetHour() - 1 < 0)
                     {
                         ShowOutput($"資料超過範圍：{weatherDataDay[i][j].RawData}");
                         continue;
@@ -329,14 +349,46 @@ namespace WeatherAssistant
 
         private void btnDay_Click(object sender, EventArgs e)
         {
-            Button clickedButton = sender as Button;
+
+
+            Button? clickedButton = sender as Button;
+
+            if (clickedButton == null) { return; }
+
             selectedDay = int.Parse(clickedButton.Text);
 
             IsEnableCutButton(true);
             ShowOutput($"選擇 {cmbMonth.Text}月{selectedDay:D2}日");
         }
 
-        private void SaveCSV(int startHour, int endHour)
+        private void SaveCSV(string fileName, int startHour, int endHour, bool isComplete)
+        {
+            List<string> result = GetWeatherDataHourMinute(startHour, endHour);
+
+            if (result.Count == 0) { return; }
+
+            if (isComplete && endHour <= 8)
+            {
+                string lastLine = result[^1];
+
+                string firstEightChars = lastLine.Substring(0, 8);
+                string firstThirteenChars = lastLine.Substring(12, 2);
+                for (int i = 9; i < 17; i++)
+                {
+                    for (int j = 0; j < 60; j += 10)
+                    {
+                        string strNewLine = $"{firstEightChars}{i:d2}{j:d2}{firstThirteenChars},,,,,,";
+                        result.Add(strNewLine);
+                    }
+                }
+                //ShowOutput(firstLine);
+            }
+            File.WriteAllLines(fileName, result);
+
+            ShowOutput($"{fileName} 存檔完成");
+        }
+
+        private void SaveCSVDialog(int startHour, int endHour, bool isShowDialog, bool isComplete)
         {
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
@@ -344,12 +396,18 @@ namespace WeatherAssistant
                 int deviceID = int.Parse(deviceName.Substring(1));
                 saveFileDialog.Filter = "CSV files (*.csv)|*.csv";
                 saveFileDialog.FileName = $"L{deviceID:D2}_{cmbMonth.Text}{selectedDay:D2}_{startHour:D2}{endHour:D2}.csv"; // 預設檔名
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    List<string> result = GetWeatherDataHourMinute(startHour, endHour);
-                    File.WriteAllLines(saveFileDialog.FileName, result);
 
-                    ShowOutput($"{saveFileDialog.FileName} 存檔完成");
+                if (isShowDialog)
+                {
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        SaveCSV(saveFileDialog.FileName, startHour, endHour, isComplete);
+
+                    }
+                }
+                else
+                {
+                    SaveCSV(saveFileDialog.FileName, startHour, endHour, isComplete);
                 }
             }
         }
@@ -362,7 +420,7 @@ namespace WeatherAssistant
                 ShowOutput("沒選擇要切的日期");
                 return;
             }
-            SaveCSV(7, 16);
+            SaveCSVDialog(7, 16, true, false);
         }
 
         private void btnCut0708_Click(object sender, EventArgs e)
@@ -373,7 +431,7 @@ namespace WeatherAssistant
                 return;
             }
 
-            SaveCSV(7, 8);
+            SaveCSVDialog(7, 8, true, true);
         }
 
         private void btnCut0916_Click(object sender, EventArgs e)
@@ -384,7 +442,7 @@ namespace WeatherAssistant
                 return;
             }
 
-            SaveCSV(9, 16);
+            SaveCSVDialog(9, 16, true, false);
         }
 
 
@@ -463,10 +521,10 @@ namespace WeatherAssistant
                 {
                     saveCount = lstMergeData.Items.Count - 1;
                 }
-                
+
                 if (iProblemNumber > 0)
                 {
-                    string strfile = lstMergeData.Items[lstMergeData.Items.Count - 1].ToString().Substring(0, 9);
+                    string strfile = lstMergeData.Items[^1].ToString().Substring(0, 9);
                     saveFileDialog.FileName = $"D{iProblemNumber:D3}_{strfile}{lstMergeData.Items.Count - 1:D2}.csv"; // 預設檔名
                 }
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
@@ -490,7 +548,7 @@ namespace WeatherAssistant
 
                     //lstMergeData.Items.RemoveAt(0); // 刪除第一筆資料
                 }
-                
+
                 mergeFullPath.Clear();
                 lstMergeData.Items.Clear();
             }
@@ -521,13 +579,116 @@ namespace WeatherAssistant
                 btnDay[i].PerformClick();
                 if (btnDay[i].BackColor == Color.Orange)
                 {
-                    SaveCSV(7, 16);
+                    SaveCSVDialog(7, 16, false, false);
                 }
                 else
                 {
-                    SaveCSV(7, 8);
+                    SaveCSVDialog(7, 8, false, true);
                 }
             }
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            int iSearchMonth = int.Parse(cmbSearchMonth.Text);
+            int iSearchDay = int.Parse(cmbSearchDay.Text);
+
+            if (cmbDevice.Items.Count == 0)
+            {
+                MessageBox.Show("無裝置資料", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            List<string> lstDeviceMsg = new List<string>();
+            List<string> lstDeviceName = new List<string>();
+
+            for (int i = 0; i < cmbDevice.Items.Count; i++)
+            {
+                cmbDevice.SelectedIndex = i;
+
+                bool isFindMonth = false;
+                for (int j = 0; j < cmbMonth.Items.Count; j++)
+                {
+                    if (cmbMonth.Items[j] == null) { continue; }
+                    if (iSearchMonth == int.Parse(cmbMonth.Items[j].ToString()))
+                    {
+                        cmbMonth.SelectedIndex = j;
+                        isFindMonth = true;
+                    }
+                }
+
+                if (!isFindMonth)
+                    continue;
+
+                if (btnDay[iSearchDay - 1].BackColor == Color.Orange)
+                {
+                    string strDeviceMsg = $"選擇 {cmbDevice.Text} 的 {iSearchMonth:D2}月{iSearchDay:D2}日";
+                    ShowOutput(strDeviceMsg);
+
+                    int iFirstDay = iSearchDay - 1;
+                    int iLastDay = iSearchDay - 1;
+                    //往前看連續完整天數
+                    for (int j = iSearchDay - 2; j >= 0; j--)
+                    {
+                        if (btnDay[j].BackColor != Color.Orange)
+                        {
+                            iFirstDay = j + 1;
+                            break;
+                        }
+                    }
+                    //往前後連續完整天數
+                    for (int j = iSearchDay; j < 31; j++)
+                    {
+                        if (btnDay[j].BackColor != Color.Orange)
+                        {
+                            iLastDay = j - 1;
+                            break;
+                        }
+                    }
+                    string strDeviceRange = $"選擇 {cmbDevice.Text} 的完整資料，範圍從 {iSearchMonth:D2}月{iFirstDay + 1:D2}日 到 {iSearchMonth:D2}月{iLastDay + 1:D2}日";
+                    ShowOutput(strDeviceRange);
+                    lstDeviceMsg.Add(strDeviceRange);
+                    lstDeviceName.Add(cmbDevice.Text.Split("_")[0]);
+                    //for (int j = iFirstDay; j <= iLastDay; j++)
+                    //{
+
+                    //    int startHour = 7;
+                    //    int endHour = 16;
+                    //    bool isComplete = false;
+                    //    btnDay[j].PerformClick();
+                    //    if (btnDay[j].BackColor == Color.Orange)
+                    //    {
+                    //        startHour = 7;
+                    //        endHour = 16;
+                    //    }
+                    //    else
+                    //    {
+                    //        startHour = 7;
+                    //        endHour = 8;
+                    //        isComplete = true;
+                    //    }
+                    //    string deviceName = cmbDevice.Text.Split("_")[0];
+                    //    int deviceID = int.Parse(deviceName.Substring(1));
+                    //    string strFileName = $"L{deviceID:D2}_{cmbMonth.Text}{selectedDay:D2}_{startHour:D2}{endHour:D2}.csv"; // 預設檔名
+                    //    SaveCSV(strFileName, startHour, endHour, isComplete);
+                    //}
+                }
+
+
+            }
+            foreach (var item in lstDeviceMsg)
+            {
+                ShowOutput(item);
+            }
+            lstDeviceName.Sort((x, y) =>
+            {
+                // 解析字串中的數字部分
+                int numX = int.Parse(x.Substring(1)); // 移除 "L" 並轉成數字
+                int numY = int.Parse(y.Substring(1));
+                return numX.CompareTo(numY); // 比較數字大小
+            });
+            ShowOutput(string.Join(",", lstDeviceName));
+            ShowOutput($"尋找 {iSearchMonth:D2}月{iSearchDay:D2}日 結束");
         }
     }
 }

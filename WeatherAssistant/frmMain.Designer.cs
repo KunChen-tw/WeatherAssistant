@@ -31,6 +31,7 @@ namespace WeatherAssistant
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             grpDevice = new GroupBox();
             cmbDevice = new ComboBox();
             gbMonth = new GroupBox();
@@ -51,11 +52,16 @@ namespace WeatherAssistant
             btnCutBySelectDay = new Button();
             cmbCutEnd = new ComboBox();
             cmbCutStart = new ComboBox();
+            grpSearchOtherDevice = new GroupBox();
+            btnSearch = new Button();
+            cmbSearchDay = new ComboBox();
+            cmbSearchMonth = new ComboBox();
             grpDevice.SuspendLayout();
             gbMonth.SuspendLayout();
             grpCutData.SuspendLayout();
             grpMergeData.SuspendLayout();
             grpCutBySelect.SuspendLayout();
+            grpSearchOtherDevice.SuspendLayout();
             SuspendLayout();
             // 
             // grpDevice
@@ -103,7 +109,7 @@ namespace WeatherAssistant
             grpCutData.Controls.Add(btnCut0917);
             grpCutData.Controls.Add(btnCut0709);
             grpCutData.Controls.Add(btnCut0717);
-            grpCutData.Location = new Point(12, 241);
+            grpCutData.Location = new Point(12, 267);
             grpCutData.Name = "grpCutData";
             grpCutData.Size = new Size(203, 56);
             grpCutData.TabIndex = 5;
@@ -112,7 +118,6 @@ namespace WeatherAssistant
             // 
             // btnCut0917
             // 
-            btnCut0917.Enabled = false;
             btnCut0917.Location = new Point(136, 22);
             btnCut0917.Name = "btnCut0917";
             btnCut0917.Size = new Size(59, 23);
@@ -123,7 +128,6 @@ namespace WeatherAssistant
             // 
             // btnCut0709
             // 
-            btnCut0709.Enabled = false;
             btnCut0709.Location = new Point(71, 22);
             btnCut0709.Name = "btnCut0709";
             btnCut0709.Size = new Size(59, 23);
@@ -134,7 +138,6 @@ namespace WeatherAssistant
             // 
             // btnCut0717
             // 
-            btnCut0717.Enabled = false;
             btnCut0717.Location = new Point(6, 22);
             btnCut0717.Name = "btnCut0717";
             btnCut0717.Size = new Size(59, 23);
@@ -162,14 +165,14 @@ namespace WeatherAssistant
             grpMergeData.Controls.Add(lstMergeData);
             grpMergeData.Location = new Point(427, 12);
             grpMergeData.Name = "grpMergeData";
-            grpMergeData.Size = new Size(255, 282);
+            grpMergeData.Size = new Size(255, 311);
             grpMergeData.TabIndex = 7;
             grpMergeData.TabStop = false;
             grpMergeData.Text = "合併資料";
             // 
             // btnExportCSV
             // 
-            btnExportCSV.Location = new Point(171, 253);
+            btnExportCSV.Location = new Point(171, 277);
             btnExportCSV.Name = "btnExportCSV";
             btnExportCSV.Size = new Size(78, 23);
             btnExportCSV.TabIndex = 4;
@@ -179,7 +182,7 @@ namespace WeatherAssistant
             // 
             // btnClear
             // 
-            btnClear.Location = new Point(119, 253);
+            btnClear.Location = new Point(119, 277);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(46, 23);
             btnClear.TabIndex = 3;
@@ -189,7 +192,7 @@ namespace WeatherAssistant
             // 
             // btnDelete
             // 
-            btnDelete.Location = new Point(67, 253);
+            btnDelete.Location = new Point(67, 277);
             btnDelete.Name = "btnDelete";
             btnDelete.Size = new Size(46, 23);
             btnDelete.TabIndex = 2;
@@ -199,7 +202,7 @@ namespace WeatherAssistant
             // 
             // btnAdd
             // 
-            btnAdd.Location = new Point(6, 253);
+            btnAdd.Location = new Point(6, 277);
             btnAdd.Name = "btnAdd";
             btnAdd.Size = new Size(55, 23);
             btnAdd.TabIndex = 1;
@@ -214,14 +217,14 @@ namespace WeatherAssistant
             lstMergeData.Location = new Point(6, 21);
             lstMergeData.Name = "lstMergeData";
             lstMergeData.SelectionMode = SelectionMode.MultiSimple;
-            lstMergeData.Size = new Size(243, 229);
+            lstMergeData.Size = new Size(243, 244);
             lstMergeData.TabIndex = 0;
             // 
             // txtOutput
             // 
-            txtOutput.Location = new Point(12, 303);
+            txtOutput.Location = new Point(12, 329);
             txtOutput.Name = "txtOutput";
-            txtOutput.Size = new Size(670, 96);
+            txtOutput.Size = new Size(670, 120);
             txtOutput.TabIndex = 8;
             txtOutput.Text = "";
             // 
@@ -230,7 +233,8 @@ namespace WeatherAssistant
             grpCutBySelect.Controls.Add(btnCutBySelectDay);
             grpCutBySelect.Controls.Add(cmbCutEnd);
             grpCutBySelect.Controls.Add(cmbCutStart);
-            grpCutBySelect.Location = new Point(213, 241);
+            grpCutBySelect.Enabled = false;
+            grpCutBySelect.Location = new Point(213, 267);
             grpCutBySelect.Name = "grpCutBySelect";
             grpCutBySelect.Size = new Size(208, 56);
             grpCutBySelect.TabIndex = 9;
@@ -239,7 +243,6 @@ namespace WeatherAssistant
             // 
             // btnCutBySelectDay
             // 
-            btnCutBySelectDay.Enabled = false;
             btnCutBySelectDay.Location = new Point(140, 24);
             btnCutBySelectDay.Name = "btnCutBySelectDay";
             btnCutBySelectDay.Size = new Size(62, 23);
@@ -251,7 +254,6 @@ namespace WeatherAssistant
             // cmbCutEnd
             // 
             cmbCutEnd.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbCutEnd.Enabled = false;
             cmbCutEnd.FormattingEnabled = true;
             cmbCutEnd.Items.AddRange(new object[] { "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31" });
             cmbCutEnd.Location = new Point(73, 25);
@@ -262,7 +264,6 @@ namespace WeatherAssistant
             // cmbCutStart
             // 
             cmbCutStart.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbCutStart.Enabled = false;
             cmbCutStart.FormattingEnabled = true;
             cmbCutStart.Items.AddRange(new object[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30" });
             cmbCutStart.Location = new Point(6, 25);
@@ -270,11 +271,54 @@ namespace WeatherAssistant
             cmbCutStart.Size = new Size(61, 23);
             cmbCutStart.TabIndex = 0;
             // 
+            // grpSearchOtherDevice
+            // 
+            grpSearchOtherDevice.Controls.Add(btnSearch);
+            grpSearchOtherDevice.Controls.Add(cmbSearchDay);
+            grpSearchOtherDevice.Controls.Add(cmbSearchMonth);
+            grpSearchOtherDevice.Location = new Point(213, 206);
+            grpSearchOtherDevice.Name = "grpSearchOtherDevice";
+            grpSearchOtherDevice.Size = new Size(208, 56);
+            grpSearchOtherDevice.TabIndex = 11;
+            grpSearchOtherDevice.TabStop = false;
+            grpSearchOtherDevice.Text = "尋找日期";
+            // 
+            // btnSearch
+            // 
+            btnSearch.Location = new Point(140, 24);
+            btnSearch.Name = "btnSearch";
+            btnSearch.Size = new Size(62, 23);
+            btnSearch.TabIndex = 2;
+            btnSearch.Text = "尋找";
+            btnSearch.UseVisualStyleBackColor = true;
+            btnSearch.Click += btnSearch_Click;
+            // 
+            // cmbSearchDay
+            // 
+            cmbSearchDay.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbSearchDay.FormattingEnabled = true;
+            cmbSearchDay.Items.AddRange(new object[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31" });
+            cmbSearchDay.Location = new Point(73, 25);
+            cmbSearchDay.Name = "cmbSearchDay";
+            cmbSearchDay.Size = new Size(61, 23);
+            cmbSearchDay.TabIndex = 1;
+            // 
+            // cmbSearchMonth
+            // 
+            cmbSearchMonth.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbSearchMonth.FormattingEnabled = true;
+            cmbSearchMonth.Items.AddRange(new object[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" });
+            cmbSearchMonth.Location = new Point(6, 25);
+            cmbSearchMonth.Name = "cmbSearchMonth";
+            cmbSearchMonth.Size = new Size(61, 23);
+            cmbSearchMonth.TabIndex = 0;
+            // 
             // FrmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(694, 409);
+            ClientSize = new Size(694, 461);
+            Controls.Add(grpSearchOtherDevice);
             Controls.Add(grpCutBySelect);
             Controls.Add(txtOutput);
             Controls.Add(grpMergeData);
@@ -283,17 +327,19 @@ namespace WeatherAssistant
             Controls.Add(gbMonth);
             Controls.Add(grpDevice);
             FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmMain";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "氣候資料處理工具 v0.6.3";
+            Text = "氣候資料處理工具";
             Load += frmMain_Load;
             grpDevice.ResumeLayout(false);
             gbMonth.ResumeLayout(false);
             grpCutData.ResumeLayout(false);
             grpMergeData.ResumeLayout(false);
             grpCutBySelect.ResumeLayout(false);
+            grpSearchOtherDevice.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -321,5 +367,9 @@ namespace WeatherAssistant
         private Button btnCutBySelectDay;
         private ComboBox cmbCutEnd;
         private ComboBox cmbCutStart;
+        private GroupBox grpSearchOtherDevice;
+        private Button btnSearch;
+        private ComboBox cmbSearchDay;
+        private ComboBox cmbSearchMonth;
     }
 }
